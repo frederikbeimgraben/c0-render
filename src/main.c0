@@ -1,0 +1,52 @@
+#use "shader.c0"
+#use "image.c0"
+#use "camera.c0"
+#use <img>
+#use "drand.c0"
+#use "ansi.c0"
+#use "strings.c0"
+#use "renderer.c0"
+
+int main() {
+    int sn = 4;
+    sphere[] s = alloc_array(sphere, sn);
+    s[3] = Sphere(
+        dfloat(3, 1),
+        Vector(dfloat(5, 1), dfloat(7, 1), dfloat(5, 1)),
+        Color(128, 128, 255, 255),
+        dfloat(5, 1)
+    );
+    s[2] = Sphere(
+        dfloat(7, 1),
+        Vector(dfloat(2, 1), dfloat(-16, 1), dfloat(-2, 1)),
+        Color(128, 255, 128, 255),
+        dfloat(5, 1)
+    );
+    s[1] = Sphere(
+        dfloat(1, 0),
+        iVector(0, 0, -1),
+        Color(255, 128, 128, 255),
+        dfloat(5, 1)
+    );
+    s[0] = Sphere(
+        dfloat(100, 0),
+        Vector(itod(0), dfloat(1020, 1), itod(-1)),
+        Color(255, 255, 255, 255),
+        dfloat(5, 1)
+    );
+    
+    camera cam = Camera(
+        iVector(0, 0, 5), 
+        iVector(-2, -2, 1), 
+        iVector(4, 0, 0), 
+        iVector(0, 4, 0)
+    );
+    vector light = Vector(
+        dfloat(-1, 0),
+        dfloat(-1, 0),
+        dfloat(-5, 1)
+    );
+    /******/
+    image_save(Render(s, sn, light, 128, 1000, 1000, cam), "out.png");
+    return 0;
+}

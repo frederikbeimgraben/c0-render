@@ -1,0 +1,121 @@
+#use <string>
+#use <conio>
+
+// Returns the ANSI escape character (ASCII 0x1B) aka. \033
+string esc() {
+    return string_fromchar(char_chr(0x1B));
+}
+
+// Formats a string for ANSI support: `"\x1B[{string}\x1B[0m"`.
+string ansi(string a) {
+    return format("%s[%s", esc(), a);
+}
+
+//////////// String Formatting ////////////
+
+/* Returns the respective standard color string given a char:
+ * ```c
+ * 'n' -> "0" (Black)
+ * 'r' -> "1" (Red)
+ * 'g' -> "2" (Green)
+ * 'y' -> "3" (Yellow)
+ * 'b' -> "4" (Blue)
+ * 'm' -> "5" (Magenta)
+ * 'c' -> "6" (Cyan)
+ * 'w' -> "7" (White)
+ * ```
+ */
+string ansi_colors_8(char c) {
+    if (c == 'n') { return "0"; } // Black
+    if (c == 'r') { return "1"; } // Red
+    if (c == 'g') { return "2"; } // Green
+    if (c == 'y') { return "3"; } // Yellow
+    if (c == 'b') { return "4"; } // Blue
+    if (c == 'm') { return "5"; } // Magenta
+    if (c == 'c') { return "6"; } // Cyan
+    return "7"; // White
+}
+
+// Returns the (non standard) 256 Color string given an color `int`. 
+string ansi_colors_256(int c) 
+/*@requires c < 256 && c >= 0; @*/
+{
+    return format("8;5;%dm", c);
+}  
+
+// Returns the (non standard) RGB-Color string given three color `int`*s*: `r`, `g` and `b`. 
+string ansi_colors_rgb(int r, int g, int b) 
+/*@requires r < 256 && g < 256 && b < 256 && r >= 0 && g >= 0 && b >= 0 ; @*/
+{
+    return format("8;2;%d;%d;%d", r, g, b);
+}  
+
+// Sets the foreground color of a string when printed in an ANSI terminal given the base string `s` and a color string `c`.
+string color_fg(string s, string c) {
+    return ansi(format("3%sm%s", c, s));
+}
+
+// Sets the background color of a string when printed in an ANSI terminal given the base string `s` and a color string `c`.
+string color_bg(string s, string c) {
+    return ansi(format("4%sm%s", c, s));
+}
+
+// Makes a given string `s` faint when printed in an ANSI terminal.
+string faint(string s) {
+    return ansi(format("2m%s", s));
+}
+
+// Makes a given string `s` bold when printed in an ANSI terminal.
+string bold(string s) {
+    return ansi(format("1m%s", s));
+}
+
+// Makes a given string `s` underlined when printed in an ANSI terminal.
+string underlined(string s) {
+    return ansi(format("4m%s", s));
+}
+
+// Makes a given string `s` slowly blink when printed in an ANSI terminal.
+string blink(string s) {
+    return ansi(format("5m%s", s));
+}
+
+// Resets all ANSI format settings.
+void reset_ansi() {
+    print(format("%s[0m", esc()));
+}
+
+// BEGIN optionale Abkürzungen
+// Foreground
+string color_fg_8(string s, char c) {
+    return color_fg(s, ansi_colors_8(c));
+}
+
+string color_fg_256(string s, int c) 
+/*@requires c < 256 && c >= 0; @*/
+{
+    return color_fg(s, ansi_colors_256(c));
+}
+
+string color_fg_rgb(string s, int r, int g, int b) 
+/*@requires r < 256 && g < 256 && b < 256 && r >= 0 && g >= 0 && b >= 0 ; @*/
+{
+    return color_fg(s, ansi_colors_rgb(r, g, b));
+}
+// Background
+string color_bg_8(string s, char c) {
+    return color_bg(s, ansi_colors_8(c));
+}
+
+string color_bg_256(string s, int c) 
+/*@requires c < 256 && c >= 0; @*/
+{
+    return color_bg(s, ansi_colors_256(c));
+}
+
+string color_bg_rgb(string s, int r, int g, int b) 
+/*@requires r < 256 && g < 256 && b < 256 && r >= 0 && g >= 0 && b >= 0 ; @*/
+{
+    return color_bg(s, ansi_colors_rgb(r, g, b));
+}
+// END optionale Abkürzungen

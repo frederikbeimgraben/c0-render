@@ -1,0 +1,45 @@
+#use "math.c0"
+#use "vector.c0"
+#use "color.c0"
+
+typedef struct Surface* surface;
+typedef struct Object*  object;
+typedef struct Sphere*  sphere;
+
+struct Surface {
+    vector a;
+    vector b;
+    vector c;
+};
+
+struct Sphere {
+    vector pos;
+    double radius;
+    double t;
+    vector normal;
+    vector p;
+    color  c;
+    double a;
+}; 
+
+struct Object {
+    surface[] s;
+    int n;
+};
+
+sphere Sphere(double radius, vector position, color tint, double absorption) {
+    sphere result  = alloc(struct Sphere);
+    result->radius = radius;
+    result->pos    = position;
+    result->c      = tint;
+    result->a      = absorption;
+    return result;
+}
+
+surface Surface(vector a, vector b, vector c) {
+    surface result = alloc(struct Surface);
+    result->a = a;
+    result->b = b;
+    result->c = c;
+    return result;
+}
