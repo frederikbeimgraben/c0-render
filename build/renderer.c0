@@ -23,7 +23,7 @@ image_t Render(sphere[] obj, int nobj, vector light, int passes, int w, int h, c
                 v = ddiv(dadd(itod(j), drand(gen)), itod(h));
                 double u = ddiv(dadd(itod(i), drand(gen)), itod(w));
                 ray r = get_ray(cam, u, v);
-                col = vadd(col, ray_color(r, obj, nobj, gen, false, light));
+                col = vadd(col, ray_color(r, obj, nobj, gen, false, light, 0));
             }
             color clr = color_from_vector(cprm(col, ddiv(itod(1),itod(passes))));
             matrix[j][i] = argb(clr);

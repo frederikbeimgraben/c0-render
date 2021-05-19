@@ -1,0 +1,13 @@
+strings.c0
+math.c0
+vector.c0
+color.c0
+geometry.c0
+shader.c0
+image.c0
+camera.c0
+rand.c0
+drand.c0
+ansi.c0
+renderer.c0
+main.c0

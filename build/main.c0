@@ -8,30 +8,46 @@
 #use "renderer.c0"
 
 int main() {
-    int sn = 4;
+    int sn = 5;
     sphere[] s = alloc_array(sphere, sn);
+    s[4] = Sphere(
+        dfloat(5, 1),
+        iVector(-2, 0, -1),
+        Color(250, 250, 100, 255),
+        dfloat(8, 1),
+        1,
+        dfloat(1, 2)
+    );
     s[3] = Sphere(
         dfloat(3, 1),
         Vector(dfloat(5, 1), dfloat(7, 1), dfloat(5, 1)),
         Color(128, 128, 255, 255),
+        dfloat(5, 1),
+        0,
         dfloat(5, 1)
     );
     s[2] = Sphere(
         dfloat(7, 1),
         Vector(dfloat(2, 1), dfloat(-16, 1), dfloat(-2, 1)),
         Color(128, 255, 128, 255),
-        dfloat(5, 1)
+        dfloat(9, 1),
+        1,
+        dfloat(3, 1)
     );
     s[1] = Sphere(
         dfloat(1, 0),
         iVector(0, 0, -1),
         Color(255, 128, 128, 255),
+        dfloat(9, 1),
+        0,
         dfloat(5, 1)
     );
     s[0] = Sphere(
-        dfloat(100, 0),
-        Vector(itod(0), dfloat(1020, 1), itod(-1)),
+        dfloat(10, 0),
+        Vector(itod(0), dfloat(11, 0), itod(-1)),
         Color(255, 255, 255, 255),
+        dfloat(5, 1),
+        0,
         dfloat(5, 1)
     );
     
@@ -47,6 +63,6 @@ int main() {
         dfloat(-5, 1)
     );
     /******/
-    image_save(Render(s, sn, light, 128, 1000, 1000, cam), "out.png");
+    image_save(Render(s, sn, light, 256, 1200, 1200, cam), "out.png");
     return 0;
 }

@@ -1,0 +1,81 @@
+#use "math.c0"
+//#use "color.c0"
+
+typedef struct Vector* vector;
+typedef vector[] mesh;
+
+struct Vector {
+    double x;
+    double y;
+    double z;
+};
+
+vector Vector(double x, double y, double z) {
+    vector result = alloc(struct Vector);
+    result->x = x;
+    result->y = y;
+    result->z = z;
+    return result;
+}
+
+vector iVector(int x, int y, int z) {
+    vector result = alloc(struct Vector);
+    result->x = itod(x);
+    result->y = itod(y);
+    result->z = itod(z);
+    return result;
+}
+
+vector vadd(vector a, vector b) {
+    vector v = alloc(struct Vector);
+    v->x = dadd(a->x, b->x);
+    v->y = dadd(a->y, b->y);
+    v->z = dadd(a->z, b->z);
+    return v;
+}
+
+vector vsub(vector a, vector b) {
+    vector v = alloc(struct Vector);
+    v->x = dsub(a->x, b->x);
+    v->y = dsub(a->y, b->y);
+    v->z = dsub(a->z, b->z);
+    return v;
+}
+
+vector vmul(vector a, vector b) {
+    vector v = alloc(struct Vector);
+    v->x = dmul(a->x, b->x);
+    v->y = dmul(a->y, b->y);
+    v->z = dmul(a->z, b->z);
+    return v;
+}
+
+vector vdiv(vector a, vector b) {
+    vector v = alloc(struct Vector);
+    v->x = ddiv(a->x, b->x);
+    v->y = ddiv(a->y, b->y);
+    v->z = ddiv(a->z, b->z);
+    return v;
+}
+
+vector cprm(vector v, double p) {
+    vector o = alloc(struct Vector);
+    o->x = dmul(v->x, p);
+    o->y = dmul(v->y, p);
+    o->z = dmul(v->z, p);
+    return o;
+}
+
+double vector_dot(vector v1, vector v2){
+    return (
+        dadd(dadd(dmul(v1->x, v2->x), dmul(v1->y, v2->y)), dmul(v1->z, v2->z))
+    );
+}
+
+double vlen(vector v) {
+    return sqrt(dadd(dadd(pow_n(v->x, 2), pow_n(v->y, 2)), pow_n(v->z, 2)));
+}
+
+vector unit_vector(vector v) {
+    return cprm(v, ddiv(itod(1), vlen(v)));
+}
