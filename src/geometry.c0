@@ -2,9 +2,11 @@
 #use "vector.c0"
 #use "color.c0"
 
-typedef struct Surface* surface;
-typedef struct Object*  object;
-typedef struct Sphere*  sphere;
+typedef struct Surface*   surface;
+typedef struct Object*    object;
+typedef struct Material*  material;
+typedef struct HitRecord* hitrecord;
+typedef struct Scene*     scene;
 
 struct Surface {
     vector a;
@@ -12,38 +14,70 @@ struct Surface {
     vector c;
 };
 
-struct Sphere {
-    vector pos;
-    double radius;
-    double t;
-    vector normal;
-    vector p;
-    color  c;
-    double a;
+struct Material {
+    color  tint;
+    double reflection;
     double fuzz;
-    int    material;
-}; 
-
-struct Object {
-    surface[] s;
-    int n;
+    int    type;
 };
 
-sphere Sphere(double radius, vector position, color tint, double absorption, int material, double fuzz) {
-    sphere result  = alloc(struct Sphere);
-    result->radius = radius;
-    result->pos    = position;
-    result->c      = tint;
-    result->a      = absorption;
-    result->material = material;
-    result->fuzz   = fuzz;
+struct HitRecord {
+    double t;
+    vector n;
+    vector p;
+};
+
+struct Object {
+    // Position/Geometry
+    vector pos1;
+    vector pos2;
+    vector pos3;
+    double mod;
+    int obj_type;
+    // Material
+    material surface;
+    // Last Hit
+    hitrecord hit;
+}; 
+
+struct Scene {
+    object[] primitives;
+    int n_primitives;
+    object* last_hit;
+    int[][] bg;
+    int bgw;
+    int bgh;
+};
+
+// SPHERE //
+object Sphere(double radius, vector position, color tint, double reflection, int mat_type, double fuzz) {
+    object result  = alloc(struct Object);
+    result->mod  = radius;
+    result->pos1 = position;
+    result->obj_type = 0;
+    // Material
+    result->surface = alloc(struct Material);
+    result->surface->tint = tint;
+    result->surface->type = mat_type;
+    result->surface->fuzz = fuzz;
+    result->surface->reflection = reflection;
+    // Hit
+    result->hit = alloc(struct HitRecord);
     return result;
 }
 
-surface Surface(vector a, vector b, vector c) {
-    surface result = alloc(struct Surface);
-    result->a = a;
-    result->b = b;
-    result->c = c;
+scene Scene(object[] o, int n_obj) {
+    scene result = alloc(struct Scene);
+    result->primitives = o;
+    result->n_primitives = n_obj;
+    result->last_hit = alloc(object);
     return result;
 }
+
+// surface Surface(vector a, vector b, vector c) {
+//     surface result = alloc(struct Surface);
+//     result->a = a;
+//     result->b = b;
+//     result->c = c;
+//     return result;
+// }

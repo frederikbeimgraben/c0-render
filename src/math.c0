@@ -1,4 +1,5 @@
 #use <dub>
+#use <conio>
 
 typedef dub double;
 
@@ -33,20 +34,7 @@ bool equal(double a, double b) {
     return a == b;
 }
 
-double sqrt(double x) {
-    double sqrt = ddiv(x, itod(2));
-    double temp = itod(0);
-    while (
-        dless(
-            DBL_EPSILON(),
-            dsub(dabs(pow_n(sqrt, 2)), dabs(x))
-            )
-    ) {
-        temp = sqrt;
-        sqrt = ddiv(dadd(ddiv(x, temp), temp), itod(2));
-    }
-    return sqrt;
-}
+
 
 double root_n(double x, int n) {
     double d = itod(1);
@@ -79,6 +67,10 @@ double root_n(double x, int n) {
         r = dadd(d, r);
     }
     return r;
+}
+
+double sqrt(double x) {
+    return root_n(x, 2);
 }
 
 int dabs_n(int x) {
@@ -121,3 +113,133 @@ int dabs_n(int x) {
 // 		*n /= gcd;
 // 		*d /= gcd;
 // }
+
+double factorial(int x)
+{
+    double sum = itod(1);
+    for(int i=1;i<=x;i++)
+    {
+        sum = dmul(sum, itod(i));
+    }
+    return sum;
+}
+
+double sin(int z)
+{
+    int i=1;
+    double value;
+    double val2;
+    double val3;
+    double sum = itod(0);
+    for(i=1; i<33; i+=2)
+    {
+        val2 = pow_n(itod(z), i);
+        val3 = factorial(i);
+        value = ddiv(val2, val3);
+        if(((i-1)/2)%2!=0){
+            sum = dsub(sum, value);    //((power(x,i))/factorial(i));
+        }else
+        {
+            sum = dadd(sum, value);
+        }
+    }
+    return sum;
+}
+
+double PI() {
+    return dfloat(314159265, 8);
+}
+
+double mPI(int x) {
+    return dmul(PI(), itod(x));
+}
+
+double dPI(int x) {
+    return ddiv(PI(), itod(x));
+}
+
+double ddPI(double x) {
+    return ddiv(PI(), x);
+}
+
+double dsgn(double x) {
+    return ddiv(x, dabs(x));
+}
+
+bool sgn(double x) {
+    return !dless(ddiv(x, dabs(x)), itod(0));
+}
+
+bool sgnp(double x) {
+    return dless(itod(0), ddiv(x, dabs(x)));
+}
+
+bool snll(double x) {
+    return x == itod(0);
+}
+
+double atan(double x) {
+    if (!(dless(x, itod(1)) || x == itod(1)))
+        return dsub(dPI(2), atan(ddiv(itod(1), x)));
+    if (dless(x, itod(-1)))
+        return dmul(dsub(dPI(2), atan(ddiv(itod(1), dabs(x)))), itod(-1));
+    double A = dfloat(28086, 5);
+    return ddiv(
+        x,
+        dadd(
+            itod(1),
+            dmul(
+                A, 
+                pow_n(x, 2)
+            )
+        )
+    );
+}
+
+double norm_atan2(double y, double x) {
+    double rad = itod(0);
+    if (sgnp(x)) {
+        rad = atan(ddiv(y, x));
+    } else if (!sgn(x) && sgn(y)) {
+        rad = dadd(atan(ddiv(y, x)), PI());
+    } else if (!sgn(x) && !sgn(y)) {
+        rad = dsub(atan(ddiv(y, x)), PI());
+    } else if (sgnp(y)) {
+        rad = ddiv(PI(), itod(2));
+    } else if (!sgn(y)) {
+        rad = ddiv(PI(), itod(-2));
+    } else {
+        rad = itod(0);
+    }
+    return ddiv(
+        dadd(rad, PI()),
+        mPI(2)
+    );
+}
+
+double acos(double x) {
+    return (
+        dadd(
+            dfloat(157079632, 8),
+            dsub(
+                dmul(
+                    dfloat(-6981317, 7),
+                    pow_n(x, 2)
+                ),
+                dfloat(87266462, 8)
+            )
+        )
+    );
+}
+
+double pyth(double a, double b) {
+    return sqrt(dadd(pow_n(a, 2), pow_n(b, 2)));
+}
+
+int maintest() {
+    // for (int i = -200; i < 201; i++) {
+    //     print_dub(atan(dfloat(i, 2)));
+    // }
+    print_dub(atan(dfloat(-15, 0)));
+    return 0;
+}

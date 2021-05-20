@@ -23,3 +23,146 @@ vector point_at_param(ray r, double p) {
     return vadd(cprm(r->direction, p), r->origin);
 }
 
+// Lambertian Random Vector
+vector rand_in_usphere(rand_t gen) {
+    vector p = iVector(1, 1, 1);
+    while (true) {
+        p = vsub(cprm(Vector(drand(gen), drand(gen), drand(gen)), itod(2)), iVector(1, 1, 1));
+        if (! dless(itod(1), pow_n(vlen(p), 2)) ) {
+            return p;
+        }
+    }
+    return p;
+}
+
+// Checks if a Sphere-Object `s` is hit by the Ray `r`.
+bool hit_sphere(object s, ray r, double t_min, double t_max) {
+    vector center = s->pos1; double radius = s->mod;
+    vector oc = vsub(r->origin, center);
+    double a = vector_dot(r->direction, r->direction);
+    double b = vector_dot(oc, r->direction);
+    double c = dsub(vector_dot(oc, oc), dmul(radius, radius));
+    double discr = dsub(pow_n(b, 2), dmul(a, c));
+    if (dless(discr, itod(0))) {}
+    else {
+        double temp =  ddiv(dsub(dsub(itod(0), b), sqrt(dsub(pow_n(b, 2), dmul(a, c)))), a);
+        if (dless(temp, t_max) && dless(t_min, temp)) {
+            s->hit->t = temp;
+            s->hit->p = point_at_param(r, temp);
+            s->hit->n = cprm(vsub(s->hit->p, s->pos1), ddiv(itod(1), s->mod));
+            return true;
+        }
+        temp = ddiv(dadd(dsub(itod(0), b), sqrt(dsub(pow_n(b, 2), dmul(a, c)))), a);
+        if (dless(temp, t_max) && dless(t_min, temp)) {
+            s->hit->t = temp;
+            s->hit->p = point_at_param(r, temp);
+            s->hit->n = cprm(vsub(s->hit->p, s->pos1), ddiv(itod(1), s->mod));
+            return true;
+        }
+    }
+    return false;
+}
+
+bool hit(scene world, ray r, double t_min, double t_max) {
+    bool hit_anything = false;
+    double closest    = t_max;
+    for (int el = 0; el < world->n_primitives; el++) {
+        // Sphere
+        if (world->primitives[el]->obj_type == 0) {
+            if (hit_sphere(world->primitives[el], r, t_min, closest)) {
+                hit_anything = true;
+                closest = world->primitives[el]->hit->t;
+                *world->last_hit = world->primitives[el];
+            }
+        }
+    }
+    return hit_anything;
+}
+
+// Lighting and so on //
+// Global Lighting
+vector global_lighting(ray r, vector light) {
+    vector unit_dir = unit_vector(r->direction);
+    double t = vector_dot(unit_dir, unit_vector(light));
+    t = dless(itod(0), t) ? t : itod(0);
+    t = dless(t, itod(1)) ? t : itod(1);
+    return vadd(
+        cprm(
+            Vector(dfloat(3, 1), dfloat(3, 1), dfloat(3, 1)),
+            dmul(t, itod(255))
+        ),
+        cprm(
+            iVector(1, 1, 1),
+            dmul(dsub(itod(1), t), itod(255))
+        )
+    );
+}
+
+void get_sphere_uv(vector p, double* u, double* v){
+	*u = norm_atan2(p->z, p->x);
+    *v = ddiv(dadd(p->y, itod(1)), itod(2));
+}
+// Background
+vector background(ray r, scene s) {
+    vector unit_dir = unit_vector(r->direction);
+    double* xd = alloc(double);
+    double* yd = alloc(double);
+    get_sphere_uv(unit_dir, xd, yd);
+    /*@assert dless(itod(0), *xd) || *xd == itod(0); @*/
+    /*@assert dless(*xd, itod(1)) || *xd == itod(1); @*/
+    int xp = dtoi(dmul(*xd, itod(s->bgw - 1)));
+    int yp = dtoi(dmul(*yd, itod(s->bgh - 1)));
+    /*@assert xp < s->bgw; @*/
+    /*@assert yp < s->bgh; @*/
+    return vector_from_color(iColor(s->bg[yp][xp]));
+}
+
+// Recursive Function to calculate random Ray Color
+vector ray_color(ray r, scene s, rand_t gen, bool trace, int depth, int max_depth) {
+    if (hit(s, r, dfloat(1, 3), itod(int_max()))) {
+        bool next_trace = (*s->last_hit)->surface->type == 0;
+        vector target;
+        if (next_trace) {
+            target = (
+                vadd(rand_in_usphere(gen), (*s->last_hit)->hit->n)
+            );
+        } else {
+            target = vadd(
+                vsub(
+                    unit_vector(r->direction), 
+                    cprm(
+                        (*s->last_hit)->hit->n, 
+                        dmul(
+                            itod(2), 
+                            vector_dot(unit_vector(r->direction), (*s->last_hit)->hit->n)
+                        )
+                    )
+                ),
+                cprm(rand_in_usphere(gen), (*s->last_hit)->surface->fuzz)
+            );
+        }
+        if (depth < max_depth) {
+            vector ray_col = cprm(
+                ray_color(
+                    Ray(
+                        (*s->last_hit)->hit->p,
+                        target
+                    ),
+                    s,
+                    gen,
+                    next_trace,
+                    depth + 1,
+                    max_depth
+                ),
+                (*s->last_hit)->surface->reflection
+            );
+            return TintVector(ray_col, (*s->last_hit)->surface->tint);
+        } else {
+            return background(r, s);
+        }
+    } else if (!trace) {
+        return background(r, s);
+    } else {
+        return background(r, s);
+    }
+}

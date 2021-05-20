@@ -1,9 +1,0 @@
-#use "rand.c0"
-#use <rand>
-#use <clock>
-#use "math.c0"
-#use <util>
-
-double drand(rand_t gen) {
-    return ddiv(itod(rand(gen)), itod(int_max()));
-}

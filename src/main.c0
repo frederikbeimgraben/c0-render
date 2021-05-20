@@ -1,0 +1,68 @@
+#use "shader.c0"
+#use "image.c0"
+#use "camera.c0"
+#use <img>
+#use "drand.c0"
+#use "renderer.c0"
+
+int main() {
+    int sn = 5;
+    object[] s = alloc_array(object, 5);
+    s[0] = Sphere(
+        dfloat(6, 1),
+        iVector(-2, 0, -1),
+        Color(255, 255, 255, 255),
+        dfloat(1, 0),
+        1,
+        dfloat(0, 2)
+    );
+    s[3] = Sphere(
+        dfloat(3, 1),
+        Vector(dfloat(5, 1), dfloat(7, 1), dfloat(5, 1)),
+        Color(128, 128, 255, 255),
+        dfloat(5, 1),
+        0,
+        dfloat(5, 1)
+    );
+    s[2] = Sphere(
+        dfloat(7, 1),
+        Vector(dfloat(2, 1), dfloat(-16, 1), dfloat(-2, 1)),
+        Color(64, 255, 64, 255),
+        dfloat(9, 1),
+        1,
+        dfloat(3, 1)
+    );
+    s[1] = Sphere(
+        dfloat(1, 0),
+        iVector(0, 0, -1),
+        Color(255, 128, 128, 255),
+        dfloat(9, 1),
+        1,
+        dfloat(0, 1)
+    );
+    s[4] = Sphere(
+        dfloat(10, 0),
+        Vector(itod(0), dfloat(11, 0), itod(-1)),
+        Color(255, 255, 255, 255),
+        dfloat(5, 1),
+        1,
+        dfloat(1, 1)
+    );
+
+    scene scn = Scene(s, sn);
+
+    image_t backg = image_load("scenes/map.png");
+    scn->bgw = image_width(backg);
+    scn->bgh = image_height(backg);
+    scn->bg = pixel_matrix(image_data(backg), scn->bgh, scn->bgw);
+    
+    camera cam = Camera(
+        iVector(0,0,4), 
+        iVector(-2, -2, 6), 
+        iVector(4, 0, 0), 
+        iVector(0, 4, 0)
+    );
+    /******/
+    image_save(Render(scn, 8, 256, 256, cam, 16), "out.png");
+    return 0;
+}

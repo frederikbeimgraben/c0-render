@@ -1,0 +1,35 @@
+#use <img>
+#use "camera.c0"
+#use "image.c0"
+
+image_t Render(scene s, int passes, int w, int h, camera cam, int reflections) {
+    image_t img = image_create(w, h);
+    int[] idata = image_data(img);
+    int[][] matrix = pixel_matrix(idata, h, w);
+    rand_t gen = init_rand(now());
+    for (int j = 0; j < h; j++) {
+        for (int i = 0; i < w; i++) {
+            vector col = iVector(0, 0, 0);
+            double v = ddiv(itod(j), itod(h));
+            double u = ddiv(itod(i), itod(w));
+            ray r = get_ray(cam, u, v);
+            int p = passes;
+            if(hit(s, r, itod(0), itod(int_max()))) {
+                p = passes / 64 + 1;
+            }
+            for (int c = 0; c < passes; c++) {
+                v = ddiv(dadd(itod(j), drand(gen)), itod(h));
+                u = ddiv(dadd(itod(i), drand(gen)), itod(w));
+                r = get_ray(cam, u, v);
+                col = vadd(col, ray_color(r, s, gen, false, 0, reflections));
+            }
+            color clr = color_from_vector(cprm(col, ddiv(itod(1), itod(passes))));
+            matrix[j][i] = argb(clr);
+        }
+        printf("\rRow %d / %d", j+1, h);
+        flush();
+        if ((j / 10) * 10 == j)
+            image_save(image_from_matrix(matrix, h, w), "preview.png");
+    }
+    return image_from_matrix(matrix, h, w);
+}

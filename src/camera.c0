@@ -21,8 +21,9 @@ camera Camera(vector origin, vector llc, vector h, vector v) {
 
 ray get_ray(camera cam, double u, double v) {
     vector co = vsub(cam->lower_left_corner, cam->origin);
+    vector px = vadd(cam->lower_left_corner, vadd(cprm(cam->horizontal, dsub(itod(1), u)), cprm(cam->vertical, dsub(itod(1), v))));
     return Ray(
-        cam->origin, 
-        vadd(vadd(co, cprm(cam->horizontal, u)), cprm(cam->vertical, v))
+        cam->origin,
+        vsub(cam->origin, px)
     );
 }
