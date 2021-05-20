@@ -9,12 +9,12 @@ int main() {
     int sn = 5;
     object[] s = alloc_array(object, 5);
     s[0] = Sphere(
-        dfloat(6, 1),
-        iVector(-2, 0, -1),
-        Color(255, 255, 255, 255),
-        dfloat(1, 0),
-        1,
-        dfloat(0, 2)
+        dfloat(6, 1), // Radius
+        iVector(-2, 0, -1), // Position
+        Color(255, 255, 255, 255), // Color
+        dfloat(1, 0), // Reflection amount
+        1, // Material Type: 1 -> Metallic
+        dfloat(0, 2) // Fuzzyness
     );
     s[3] = Sphere(
         dfloat(3, 1),
