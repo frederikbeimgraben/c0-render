@@ -1,5 +1,6 @@
 #use "math.c0"
 //#use "color.c0"
+#use "strings.c0"
 
 typedef struct Vector* vector;
 typedef vector[] mesh;
@@ -72,6 +73,23 @@ double vector_dot(vector v1, vector v2){
     );
 }
 
+vector vector_cross(vector v1, vector v2) {
+    return Vector(
+        dsub(
+            dmul(v1->y, v2->z),
+            dmul(v1->z, v2->y)
+        ),
+        dsub(
+            dmul(v1->z, v2->x),
+            dmul(v1->x, v2->z)
+        ),
+        dsub(
+            dmul(v1->x, v2->y),
+            dmul(v1->y, v2->x)
+        )
+    );
+}
+
 double vlen(vector v) {
     return sqrt(dadd(dadd(pow_n(v->x, 2), pow_n(v->y, 2)), pow_n(v->z, 2)));
 }
@@ -85,3 +103,31 @@ vector unit_vector(vector v)
         ddiv(v->z, vlen(v))
     );
 }
+
+string string_fromdouble(double d) {
+    int bp = dtoi(d);
+    int ap = dtoi(
+        dmul(
+            dsub(d, itod(bp)),
+            itod(1000)
+        )
+    );
+    return format(
+        "%d.%s", 
+        bp, 
+        rjust(
+            string_fromint(ap),
+            3,
+            '0'
+        )
+    );
+}
+
+string string_fromvector(vector v) {
+    return format(
+        "( %s , %s , %s )", 
+        string_fromdouble(v->x),
+        string_fromdouble(v->y),
+        string_fromdouble(v->z)
+    );
+} 

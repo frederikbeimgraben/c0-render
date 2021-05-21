@@ -43,8 +43,7 @@ bool hit_sphere(object s, ray r, double t_min, double t_max) {
     double b = vector_dot(oc, r->direction);
     double c = dsub(vector_dot(oc, oc), dmul(radius, radius));
     double discr = dsub(pow_n(b, 2), dmul(a, c));
-    if (dless(discr, itod(0))) {}
-    else {
+    if (!dless(discr, itod(0))) {
         double temp =  ddiv(dsub(dsub(itod(0), b), sqrt(dsub(pow_n(b, 2), dmul(a, c)))), a);
         if (dless(temp, t_max) && dless(t_min, temp)) {
             s->hit->t = temp;
@@ -63,6 +62,69 @@ bool hit_sphere(object s, ray r, double t_min, double t_max) {
     return false;
 }
 
+bool hit_triangle(object t, ray r, double t_min, double t_max) {
+    vector v0 = t->pos1;
+    vector v1 = t->pos2;
+    vector v2 = t->pos3;
+    vector dir = r->direction;
+    vector orig = r->origin;
+    double kEpsilon = dfloat(1, 8);
+
+    // compute plane's normal
+    vector v0v1 = vsub(v1, v0); 
+    vector v0v2 = vsub(v2, v0); 
+    // no need to normalize
+
+    // no need to normalize
+    vector N = vector_cross(v0v1, v0v2); // N 
+    t->hit->n = cprm(triangle_norm_dir(t, r->direction), itod(-1));
+    /*@assert dless(vector_dot(N, v0v1), kEpsilon); @*/
+    double area2 = vlen(N); 
+ 
+    // Step 1: finding P
+ 
+    // check if ray and plane are parallel ?
+    double NdotRayDirection = vector_dot(N, dir); 
+    if (dless(dabs(NdotRayDirection), kEpsilon)) // almost 0
+        return false; // they are parallel so they don't intersect ! 
+
+    // compute d parameter using equation 2
+    double d = vector_dot(N, v0); 
+ 
+    // compute t (equation 3)
+    t->hit->t = ddiv(dadd(vector_dot(N, orig), d), dmul(NdotRayDirection, itod(-1))); 
+    // check if the triangle is in behind the ray
+    if (dless(t->hit->t, itod(0))) return false; // the triangle is behind 
+ 
+    // compute the intersection point using equation 1
+    vector P = vadd(orig, cprm(dir, t->hit->t)); 
+
+    t->hit->p = P;
+ 
+    // Step 2: inside-outside test
+    vector C; // vector perpendicular to triangle's plane 
+ 
+    // edge 0
+    vector edge0 = vsub(v1, v0); 
+    vector vp0 = vsub(P, v0); 
+    C = vector_cross(edge0, vp0); 
+    if (dless(vector_dot(N, C), itod(0))) return false; // P is on the right side 
+ 
+    // edge 1
+    vector edge1 = vsub(v2, v1); 
+    vector vp1 = vsub(P, v1); 
+    C = vector_cross(edge1, vp1); 
+    if (dless(vector_dot(N, C), itod(0)))  return false; // P is on the right side 
+ 
+    // edge 2
+    vector edge2 = vsub(v0, v2); 
+    vector vp2 = vsub(P, v2); 
+    C = vector_cross(edge2, vp2); 
+    if (dless(vector_dot(N, C), itod(0))) return false; // P is on the right side; 
+ 
+    return true; // this ray hits the triangle 
+}
+
 bool hit(scene world, ray r, double t_min, double t_max) {
     bool hit_anything = false;
     double closest    = t_max;
@@ -70,6 +132,13 @@ bool hit(scene world, ray r, double t_min, double t_max) {
         // Sphere
         if (world->primitives[el]->obj_type == 0) {
             if (hit_sphere(world->primitives[el], r, t_min, closest)) {
+                hit_anything = true;
+                closest = world->primitives[el]->hit->t;
+                *world->last_hit = world->primitives[el];
+            }
+        }
+        if (world->primitives[el]->obj_type == 1) {
+            if (hit_triangle(world->primitives[el], r, t_min, closest)) {
                 hit_anything = true;
                 closest = world->primitives[el]->hit->t;
                 *world->last_hit = world->primitives[el];
@@ -100,7 +169,10 @@ vector global_lighting(ray r, vector light) {
 
 void get_sphere_uv(vector p, double* u, double* v){
 	*u = norm_atan2(p->z, p->x);
-    *v = ddiv(dadd(p->y, itod(1)), itod(2));
+    double y = unit_vector(p)->y;
+    y = dless(itod(-1), y) || y == itod(-1) ? y : itod(-1);
+    y = dless(y,  itod(1)) || y == itod( 1) ? y : itod( 1);
+    *v = ddiv(dadd(y, itod(1)), itod(2));
 }
 // Background
 vector background(ray r, scene s) {
@@ -110,10 +182,14 @@ vector background(ray r, scene s) {
     get_sphere_uv(unit_dir, xd, yd);
     /*@assert dless(itod(0), *xd) || *xd == itod(0); @*/
     /*@assert dless(*xd, itod(1)) || *xd == itod(1); @*/
+    /*@assert dless(itod(0), *yd) || *yd == itod(0); @*/
+    /*@assert dless(*yd, itod(1)) || *yd == itod(1); @*/
     int xp = dtoi(dmul(*xd, itod(s->bgw - 1)));
     int yp = dtoi(dmul(*yd, itod(s->bgh - 1)));
-    /*@assert xp < s->bgw; @*/
-    /*@assert yp < s->bgh; @*/
+    yp = yp < 0 ? 0 : yp;
+    yp = yp > s->bgh ? s->bgh-1 : yp;
+    /*@assert xp < \length(s->bg[0]); @*/
+    /*@assert yp < \length(s->bg); @*/
     return vector_from_color(iColor(s->bg[yp][xp]));
 }
 
@@ -142,17 +218,27 @@ vector ray_color(ray r, scene s, rand_t gen, bool trace, int depth, int max_dept
             );
         }
         if (depth < max_depth) {
-            vector ray_col = cprm(
-                ray_color(
-                    Ray(
-                        (*s->last_hit)->hit->p,
-                        target
+            vector ray_col = ray_color(
+                Ray(
+                    (*s->last_hit)->hit->p,
+                    target
+                ),
+                s,
+                gen,
+                next_trace,
+                depth + 1,
+                max_depth
+            );
+            ray_col = cprm(
+                cprm(
+                    gamma_adjust(
+                        cprm(
+                            ray_col,
+                            frac(1, 256)
+                        ),
+                        inv((*s->last_hit)->surface->reflection)
                     ),
-                    s,
-                    gen,
-                    next_trace,
-                    depth + 1,
-                    max_depth
+                    frac(256, 1)
                 ),
                 (*s->last_hit)->surface->reflection
             );

@@ -74,10 +74,133 @@ scene Scene(object[] o, int n_obj) {
     return result;
 }
 
-// surface Surface(vector a, vector b, vector c) {
-//     surface result = alloc(struct Surface);
-//     result->a = a;
-//     result->b = b;
-//     result->c = c;
-//     return result;
-// }
+vector triangle_norm(object t) {
+    return unit_vector(
+        vector_cross(
+            vsub(t->pos2, t->pos1),
+            vsub(t->pos3, t->pos1)
+        )
+    );
+}
+
+vector triangle_norm_dir(object t, vector d) {
+    vector norm = triangle_norm(t);
+    double rel = (
+        sgn(ddiv(norm->x, vector_dot(norm, d))) ?
+        itod( 1) :
+        itod(-1)
+    );
+    return unit_vector(cprm(norm, rel));
+}
+
+object Triangle(vector a, vector b, vector c, color tint, double reflection, int mat_type, double fuzz) {
+    object result  = alloc(struct Object);
+    result->pos1 = a;
+    result->pos2 = b;
+    result->pos3 = c;
+    result->obj_type = 1;
+    // Material
+    result->surface = alloc(struct Material);
+    result->surface->tint = tint;
+    result->surface->type = mat_type;
+    result->surface->fuzz = fuzz;
+    result->surface->reflection = reflection;
+    // Hit
+    result->hit = alloc(struct HitRecord);
+    return result;
+}
+
+object TriangleDerived(vector a, vector b, vector c, object t) {
+    return Triangle(
+        a, 
+        b, 
+        c, 
+        t->surface->tint, 
+        t->surface->reflection,
+        t->surface->type,
+        t->surface->fuzz
+    );
+}
+
+scene Prism(vector origin, vector a, vector b, vector c, color tint, double reflection, int mat_type, double fuzz) {
+    object d = Triangle(
+        a, b, c, tint, reflection, mat_type, fuzz
+    );
+
+    vector A = origin;
+    vector B = vadd(origin, a);
+    vector C = vadd(origin, b);
+    vector D = vadd(origin, c);
+
+    vector E = vadd(B, b);
+    vector F = vadd(C, c);
+    vector G = vadd(E, c);
+    vector H = vadd(B, c);
+
+    object[] ts = alloc_array(object, 12);
+    ts[0] = TriangleDerived(
+        A, B, C,
+        d
+    );
+    ts[1] = TriangleDerived(
+        A, C, D,
+        d
+    );
+    ts[2] = TriangleDerived(
+        A, B, D,
+        d
+    );
+
+    ts[3] = TriangleDerived(
+        B, C, E,
+        d
+    );
+    ts[4] = TriangleDerived(
+        C, D, F,
+        d
+    );
+    ts[5] = TriangleDerived(
+        B, D, H,
+        d
+    );
+
+    ts[6] = TriangleDerived(
+        C, E, F,
+        d
+    );
+    ts[7] = TriangleDerived(
+        B, E, H,
+        d
+    );
+    ts[8] = TriangleDerived(
+        H, D, F,
+        d
+    );
+
+    ts[9] = TriangleDerived(
+        G, E, F,
+        d
+    );
+    ts[10] = TriangleDerived(
+        G, H, F,
+        d
+    );
+    ts[11] = TriangleDerived(
+        G, H, E,
+        d
+    );
+    
+
+    for (int i = 0; i < 12; i++) {
+        object t = ts[i];
+        printf(
+            "Triangle( %s , %s , %s )\n",
+            string_fromvector(t->pos1),
+            string_fromvector(t->pos2),
+            string_fromvector(t->pos3)
+        );
+    }
+
+
+    return Scene(ts, 12);
+}

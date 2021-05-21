@@ -49,3 +49,15 @@ vector TintVector(vector c, color t) {
         dmul(c->z, tn->z)
     );
 }
+
+double root_d2(double x, double exp) {
+    return root_n(pow_n(x, dtoi(dmul(exp, itod(10)))), 10);
+}
+
+vector gamma_adjust(vector c, double r) {
+    return Vector(
+        root_d2(c->x, r),
+        root_d2(c->y, r),
+        root_d2(c->z, r)
+    );
+}

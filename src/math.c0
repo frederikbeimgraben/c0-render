@@ -211,10 +211,17 @@ double norm_atan2(double y, double x) {
     } else {
         rad = itod(0);
     }
-    return ddiv(
+    double norm = ddiv(
         dadd(rad, PI()),
         mPI(2)
     );
+    if (
+        dless(norm, itod(0)) ||
+        dless(itod(1), norm)
+    ) {
+        return itod(0);
+    }
+    return norm;
 }
 
 double acos(double x) {
@@ -242,4 +249,12 @@ int maintest() {
     // }
     print_dub(atan(dfloat(-15, 0)));
     return 0;
+}
+
+double frac(int n, int d) {
+    return ddiv(itod(n), itod(d));
+}
+
+double inv(double d) {
+    return ddiv(itod(1), d);
 }

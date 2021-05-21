@@ -14,16 +14,17 @@ image_t Render(scene s, int passes, int w, int h, camera cam, int reflections) {
             double u = ddiv(itod(i), itod(w));
             ray r = get_ray(cam, u, v);
             int p = passes;
-            if(hit(s, r, itod(0), itod(int_max()))) {
-                p = passes / 64 + 1;
+            color clr;
+            if(!hit(s, r, itod(0), itod(int_max()))) {
+                p = 16;
             }
-            for (int c = 0; c < passes; c++) {
+            for (int c = 0; c < p; c++) {
                 v = ddiv(dadd(itod(j), drand(gen)), itod(h));
                 u = ddiv(dadd(itod(i), drand(gen)), itod(w));
                 r = get_ray(cam, u, v);
                 col = vadd(col, ray_color(r, s, gen, false, 0, reflections));
             }
-            color clr = color_from_vector(cprm(col, ddiv(itod(1), itod(passes))));
+            clr = color_from_vector(cprm(col, frac(1, p)));
             matrix[j][i] = argb(clr);
         }
         printf("\rRow %d / %d", j+1, h);
