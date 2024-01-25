@@ -1,7 +1,7 @@
 # c0-render
 I know it is cursed...
 
-A randerer in the learning language "c0"
+A renderer in the learning language "c0"
 
 This language does not support multithreading and is fucking slow all by it´s own - so rendering may take up to twelve hours...
 
